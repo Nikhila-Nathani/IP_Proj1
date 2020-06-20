@@ -1,0 +1,39 @@
+Implementation:
+
+Registration Server
+
+The server is multi-threaded, in order to handle requests simultaneously from many clients.
+When ever a client requests a connection, it opens a new thread, and assigns it to the
+particular client, while it waits on the port 65423.
+The server allows the client to register, and checks if it is previously registered, and if
+not, it assigns a unique cookie to it, and also responds to leave message, or keepalive message
+or to any download query request, that is PQuery in this case. All the requests are given a
+response, if the peer is in active status, otherwise the server returns an error.
+Each peer is identified through the peer list data structure, maintained by the server. It
+checks with the hostname and the port number to which the RFC server of the peer is
+listening to, and if it finds the peer to be a match, it retrieves the old cookie, otherwise it
+creates a new cookie and sends it as a response.
+
+Peer
+
+Since the peer can request other peers, and can also respond to requests it gets, it should have
+an RFC client as well as an RFC server. Apart from this, the peer should be able to handle
+requests, and should be able to keep the connection alive, for the time it is performing the
+task that is requested.
+
+RFC Client:
+
+It takes up an individual thread, and maintains the local RFC index, which has the
+information about RFCs which are only on that peer, and when it connects with another peer,
+it gets the RFC index(Get RFC_index) of that peer, and merges it with the local copy, and
+also the index of where it actually can be retrieved from, in this way, it can redirect any other
+peer asking for those RFCs, to the original peer that holds them.
+With this, the peer can update the requiredRFCs if they are in the merged RFCs. Once
+all the downloads are done, the thread returns. If the client needs to do more downloads, it
+searches for an active peer, otherwise it queries the server, through PQuery.
+
+RFC Server:
+
+It does the same as the server, which runs on an individual thread, and continues to run, so it
+can accommodate any peer requests. Since it acts as a server for multiple peers, it handles the
+request through multiple threads.
